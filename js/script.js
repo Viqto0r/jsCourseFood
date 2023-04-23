@@ -1,27 +1,27 @@
 window.addEventListener('DOMContentLoaded', function () {
     //tabs
     var tabsParent = document.querySelector('.tabheader__items');
-    var tabs = tabsParent === null || tabsParent === void 0 ? void 0 : tabsParent.querySelectorAll('.tabheader__item');
+    var tabs = tabsParent.querySelectorAll('.tabheader__item');
     var tabContent = document.querySelectorAll('.tabcontent');
     var hideTabContent = function () {
-        tabContent === null || tabContent === void 0 ? void 0 : tabContent.forEach(function (item) { return (item.style.display = 'none'); });
-        tabs === null || tabs === void 0 ? void 0 : tabs.forEach(function (item) { return item.classList.remove('tabheader__item_active'); });
+        tabContent.forEach(function (item) { return (item.style.display = 'none'); });
+        tabs.forEach(function (item) { return item.classList.remove('tabheader__item_active'); });
     };
     var showTabContent = function (idx) {
         if (idx === void 0) { idx = 0; }
-        ;
         tabContent[idx].style.display = 'block';
         tabs[idx].classList.add('tabheader__item_active');
     };
-    tabsParent === null || tabsParent === void 0 ? void 0 : tabsParent.addEventListener('click', function (ev) {
-        if (ev.target &&
-            ev.target.classList.contains('tabheader__item'))
-            tabs === null || tabs === void 0 ? void 0 : tabs.forEach(function (tab, idx) {
-                if (ev.target === tab) {
-                    hideTabContent();
-                    showTabContent(idx);
-                }
-            });
+    tabsParent === null || tabsParent === void 0 ? void 0 : tabsParent.addEventListener('click', function (e) {
+        if (e.target instanceof Element) {
+            if (e.target && e.target.classList.contains('tabheader__item'))
+                tabs.forEach(function (tab, idx) {
+                    if (e.target === tab) {
+                        hideTabContent();
+                        showTabContent(idx);
+                    }
+                });
+        }
     });
     hideTabContent();
     showTabContent();
@@ -40,7 +40,7 @@ window.addEventListener('DOMContentLoaded', function () {
         };
     };
     var setTime = function (selector, deadline) {
-        var timer = document.querySelector(selector), days = timer === null || timer === void 0 ? void 0 : timer.querySelector('#days'), hours = timer === null || timer === void 0 ? void 0 : timer.querySelector('#hours'), minutes = timer === null || timer === void 0 ? void 0 : timer.querySelector('#minutes'), seconds = timer === null || timer === void 0 ? void 0 : timer.querySelector('#seconds');
+        var timer = document.querySelector(selector), days = timer.querySelector('#days'), hours = timer.querySelector('#hours'), minutes = timer.querySelector('#minutes'), seconds = timer.querySelector('#seconds');
         var updateTime = function () {
             if (days && hours && minutes && seconds) {
                 var time = getTimeRemaining(deadline);
@@ -57,4 +57,40 @@ window.addEventListener('DOMContentLoaded', function () {
         var timeId = setInterval(updateTime, 1000);
     };
     setTime('.timer', deadline);
+    // Modal
+    var openModalBtns = document.querySelectorAll('[data-openModal]');
+    var modal = document.querySelector('.modal');
+    var closeModalBtn = modal.querySelector('[data-closeModal]');
+    var closeModal = function () {
+        modal.style.display = '';
+        document.body.style.overflow = 'auto';
+    };
+    var openModal = function () {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        clearTimeout(modalTImerId);
+    };
+    openModalBtns.forEach(function (btn) { return btn.addEventListener('click', openModal); });
+    closeModalBtn === null || closeModalBtn === void 0 ? void 0 : closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.code === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+    var modalTImerId = setTimeout(function () {
+        openModal();
+    }, 5000);
+    var showModalByScroll = function () {
+        var _a = document.documentElement, offsetHeight = _a.offsetHeight, clientHeight = _a.clientHeight;
+        if (offsetHeight - clientHeight <= window.pageYOffset) {
+            openModal();
+            window.removeEventListener('scroll', showModalByScroll);
+        }
+    };
+    window.addEventListener('scroll', showModalByScroll);
 });
