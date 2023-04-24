@@ -126,7 +126,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const modalTImerId = setTimeout(() => {
     openModal()
-  }, 5000)
+  }, 500000000)
 
   const showModalByScroll = () => {
     const { offsetHeight, clientHeight } = document.documentElement
@@ -137,4 +137,120 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('scroll', showModalByScroll)
+
+  //classes
+  interface ICreateItemProps {
+    tag: string
+    className?: string
+    text?: string
+    src?: string
+    alt?: string
+  }
+  class Card {
+    private transfer = 27
+    constructor(
+      public src: string,
+      public alt: string,
+      public title: string,
+      public description: string,
+      public price: number,
+      public parent: string
+    ) {}
+
+    convertToRub() {
+      this.price *= this.transfer
+    }
+
+    createCardItem({ tag, className, text, src, alt }: ICreateItemProps) {
+      const item = document.createElement(tag)
+      if (className) {
+        item.classList.add(className)
+      }
+      if (text) {
+        item.textContent = text
+      }
+      if (src && alt && item instanceof HTMLImageElement) {
+        item.src = src
+        item.alt = alt
+      }
+
+      return item
+    }
+
+    render() {
+      this.convertToRub()
+
+      const card = this.createCardItem({ tag: 'div', className: 'menu__item' })
+      const img = this.createCardItem({
+        tag: 'img',
+        src: this.src,
+        alt: this.alt,
+      })
+      const title = this.createCardItem({
+        tag: 'h3',
+        className: 'menu__item-subtitle',
+        text: this.title,
+      })
+      const description = this.createCardItem({
+        tag: 'div',
+        className: 'menu__item-descr',
+        text: this.description,
+      })
+      const divider = this.createCardItem({
+        tag: 'div',
+        className: 'menu__item-divider',
+      })
+      const price = this.createCardItem({
+        tag: 'div',
+        className: 'menu__item-price',
+      })
+      const cost = this.createCardItem({
+        tag: 'div',
+        className: 'menu__item-cost',
+        text: 'Цена',
+      })
+      const total = this.createCardItem({
+        tag: 'div',
+        className: 'menu__item-total',
+        text: ' руб/день',
+      })
+      const span = this.createCardItem({
+        tag: 'span',
+        text: String(this.price),
+      })
+
+      total.prepend(span)
+      price.append(cost, total)
+      card.append(img, title, description, divider, price)
+
+      document.querySelector(this.parent)?.append(card)
+    }
+  }
+
+  new Card(
+    'img/tabs/vegy.jpg',
+    'vegy',
+    'Меню "Фитнес"',
+    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+    9,
+    '.menu .container'
+  ).render()
+
+  new Card(
+    'img/tabs/elite.jpg',
+    'elite',
+    'Меню “Премиум”',
+    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+    20,
+    '.menu .container'
+  ).render()
+
+  new Card(
+    'img/tabs/post.jpg',
+    'post',
+    'Меню "Постное"',
+    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+    16,
+    '.menu .container'
+  ).render()
 })
