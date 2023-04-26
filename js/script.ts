@@ -147,15 +147,33 @@ window.addEventListener('DOMContentLoaded', () => {
     alt?: string
   }
   class Card {
+    src: string
+    alt: string
+    title: string
+    description: string
+    price: number
+    parent: Element
+    classes: string[]
     private transfer = 27
+
     constructor(
-      public src: string,
-      public alt: string,
-      public title: string,
-      public description: string,
-      public price: number,
-      public parent: string
-    ) {}
+      src: string,
+      alt: string,
+      title: string,
+      description: string,
+      price: number,
+      parent: string,
+      ...classes: string[]
+    ) {
+      this.src = src
+      this.alt = alt
+      this.title = title
+      this.description = description
+      this.price = price
+      this.parent = document.querySelector(parent)!
+      this.convertToRub()
+      this.classes = classes
+    }
 
     convertToRub() {
       this.price *= this.transfer
@@ -178,8 +196,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     render() {
-      this.convertToRub()
-
       const card = this.createCardItem({ tag: 'div', className: 'menu__item' })
       const img = this.createCardItem({
         tag: 'img',
@@ -219,11 +235,13 @@ window.addEventListener('DOMContentLoaded', () => {
         text: String(this.price),
       })
 
+      this.classes.forEach((className) => card.classList.add(className))
+
       total.prepend(span)
       price.append(cost, total)
       card.append(img, title, description, divider, price)
 
-      document.querySelector(this.parent)?.append(card)
+      this.parent.append(card)
     }
   }
 
@@ -233,7 +251,9 @@ window.addEventListener('DOMContentLoaded', () => {
     'Меню "Фитнес"',
     'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
     9,
-    '.menu .container'
+    '.menu .container',
+    'big',
+    'small'
   ).render()
 
   new Card(
@@ -253,4 +273,48 @@ window.addEventListener('DOMContentLoaded', () => {
     16,
     '.menu .container'
   ).render()
+
+  //Forms
+
+  const forms = document.querySelectorAll('form')
+  enum ResponseMessage {
+    SUCCESS = 'SUCCESS',
+    LODADING = 'LOADING',
+    ERROR = 'ERROR',
+  }
+
+  const postData = (form: HTMLFormElement) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+
+      const request = new XMLHttpRequest()
+      const formData = new FormData(form)
+      const responseBlock = document.createElement('div')
+      responseBlock.textContent = ResponseMessage.LODADING
+      form.append(responseBlock)
+
+      request.open('POST', 'server.php')
+      request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+
+      const obj: { [key: string]: any } = {}
+
+      formData.forEach((value, key) => (obj[key] = value))
+      const json = JSON.stringify(obj)
+      request.send(json)
+
+      request.addEventListener('load', () => {
+        if (request.status === 200) {
+          responseBlock.textContent = ResponseMessage.SUCCESS
+          form.reset()
+        } else {
+          responseBlock.textContent = ResponseMessage.ERROR
+        }
+        setTimeout(() => {
+          responseBlock.textContent = ''
+        }, 2000)
+      })
+    })
+  }
+
+  forms.forEach((form) => postData(form))
 })

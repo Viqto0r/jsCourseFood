@@ -95,13 +95,19 @@ window.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('scroll', showModalByScroll);
     var Card = /** @class */ (function () {
         function Card(src, alt, title, description, price, parent) {
+            var classes = [];
+            for (var _i = 6; _i < arguments.length; _i++) {
+                classes[_i - 6] = arguments[_i];
+            }
+            this.transfer = 27;
             this.src = src;
             this.alt = alt;
             this.title = title;
             this.description = description;
             this.price = price;
-            this.parent = parent;
-            this.transfer = 27;
+            this.parent = document.querySelector(parent);
+            this.convertToRub();
+            this.classes = classes;
         }
         Card.prototype.convertToRub = function () {
             this.price *= this.transfer;
@@ -122,8 +128,6 @@ window.addEventListener('DOMContentLoaded', function () {
             return item;
         };
         Card.prototype.render = function () {
-            var _a;
-            this.convertToRub();
             var card = this.createCardItem({ tag: 'div', className: 'menu__item' });
             var img = this.createCardItem({
                 tag: 'img',
@@ -162,14 +166,52 @@ window.addEventListener('DOMContentLoaded', function () {
                 tag: 'span',
                 text: String(this.price)
             });
+            this.classes.forEach(function (className) { return card.classList.add(className); });
             total.prepend(span);
             price.append(cost, total);
             card.append(img, title, description, divider, price);
-            (_a = document.querySelector(this.parent)) === null || _a === void 0 ? void 0 : _a.append(card);
+            this.parent.append(card);
         };
         return Card;
     }());
-    new Card('img/tabs/vegy.jpg', 'vegy', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 9, '.menu .container').render();
+    new Card('img/tabs/vegy.jpg', 'vegy', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 9, '.menu .container', 'big', 'small').render();
     new Card('img/tabs/elite.jpg', 'elite', 'Меню “Премиум”', 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 20, '.menu .container').render();
     new Card('img/tabs/post.jpg', 'post', 'Меню "Постное"', 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', 16, '.menu .container').render();
+    //Forms
+    var forms = document.querySelectorAll('form');
+    var ResponseMessage;
+    (function (ResponseMessage) {
+        ResponseMessage["SUCCESS"] = "SUCCESS";
+        ResponseMessage["LODADING"] = "LOADING";
+        ResponseMessage["ERROR"] = "ERROR";
+    })(ResponseMessage || (ResponseMessage = {}));
+    var postData = function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var request = new XMLHttpRequest();
+            var formData = new FormData(form);
+            var responseBlock = document.createElement('div');
+            responseBlock.textContent = ResponseMessage.LODADING;
+            form.append(responseBlock);
+            request.open('POST', 'server.php');
+            request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            var obj = {};
+            formData.forEach(function (value, key) { return (obj[key] = value); });
+            var json = JSON.stringify(obj);
+            request.send(json);
+            request.addEventListener('load', function () {
+                if (request.status === 200) {
+                    responseBlock.textContent = ResponseMessage.SUCCESS;
+                    form.reset();
+                }
+                else {
+                    responseBlock.textContent = ResponseMessage.ERROR;
+                }
+                setTimeout(function () {
+                    responseBlock.textContent = '';
+                }, 2000);
+            });
+        });
+    };
+    forms.forEach(function (form) { return postData(form); });
 });
