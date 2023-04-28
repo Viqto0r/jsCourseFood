@@ -95,7 +95,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const openModalBtns = document.querySelectorAll('[data-openModal]')
   const modal: HTMLElement = document.querySelector('.modal')!
-  const closeModalBtn = modal!.querySelector('[data-closeModal]')
 
   const closeModal = () => {
     modal.style.display = ''
@@ -110,10 +109,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   openModalBtns.forEach((btn) => btn.addEventListener('click', openModal))
 
-  closeModalBtn?.addEventListener('click', closeModal)
-
   modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
+    if (
+      e.target === modal ||
+      (e.target instanceof HTMLElement &&
+        e.target.getAttribute('data-closemodal') === '')
+    ) {
       closeModal()
     }
   })
@@ -278,43 +279,103 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const forms = document.querySelectorAll('form')
   enum ResponseMessage {
-    SUCCESS = 'SUCCESS',
-    LODADING = 'LOADING',
-    ERROR = 'ERROR',
+    SUCCESS = 'Мы с вами свяжемся',
+    LODADING = 'img/form/spinner.svg',
+    ERROR = 'Чтото пошло не так...',
   }
 
   const postData = (form: HTMLFormElement) => {
     form.addEventListener('submit', (e) => {
       e.preventDefault()
 
-      const request = new XMLHttpRequest()
       const formData = new FormData(form)
-      const responseBlock = document.createElement('div')
-      responseBlock.textContent = ResponseMessage.LODADING
-      form.append(responseBlock)
 
-      request.open('POST', 'server.php')
-      request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+      const img = document.createElement('img')
+      img.src = ResponseMessage.LODADING
+      img.style.cssText = `
+			display:block;
+			margin: 0 auto;`
+
+      form.insertAdjacentElement('afterend', img)
 
       const obj: { [key: string]: any } = {}
 
       formData.forEach((value, key) => (obj[key] = value))
-      const json = JSON.stringify(obj)
-      request.send(json)
 
-      request.addEventListener('load', () => {
-        if (request.status === 200) {
-          responseBlock.textContent = ResponseMessage.SUCCESS
-          form.reset()
-        } else {
-          responseBlock.textContent = ResponseMessage.ERROR
-        }
-        setTimeout(() => {
-          responseBlock.textContent = ''
-        }, 2000)
+      fetch('server.php', {
+        method: 'POST',
+        body: JSON.stringify(obj),
+        headers: { 'Content-Type': 'application/json' },
       })
+        .then((data) => {
+          img.remove()
+          if (data.statusText === 'OK') {
+            return data.text()
+          } else {
+            throw new Error('Ошибка')
+          }
+        })
+        .then((date) => {
+          console.log(date)
+          showThanksModal(ResponseMessage.SUCCESS)
+        })
+        .catch((err) => {
+          console.error(err)
+          showThanksModal(ResponseMessage.ERROR)
+        })
+        .finally(() => {
+          form.reset()
+        })
     })
   }
 
   forms.forEach((form) => postData(form))
+
+  const showThanksModal = (message: ResponseMessage) => {
+    const prevModal = document.querySelector('.modal__dialog')
+
+    if (prevModal instanceof HTMLElement) {
+      prevModal.style.display = 'none'
+    }
+
+    openModal()
+
+    const thanksModal = document.createElement('div')
+
+    thanksModal.classList.add('modal__dialog')
+    thanksModal.innerHTML = `
+			<div class="modal__content">
+					<div class="modal__close" data-closemodal>×</div>
+					<div class="modal__title">${message}</div>
+			</div>
+			`
+
+    document.querySelector('.modal')?.append(thanksModal)
+
+    setTimeout(() => {
+      closeModal()
+      if (prevModal instanceof HTMLElement) {
+        prevModal.style.display = 'block'
+      }
+      thanksModal.remove()
+    }, 2000)
+  }
+  //Promise test
+  //  interface IData {
+  //    name: string
+  //    price: number
+  //    order?: boolean
+  //  }
+
+  //  const promise: Promise<IData> = new Promise((resolve) => {
+  //    setTimeout(() => {
+  //      resolve({ name: 'TV', price: 4000 })
+  //    }, 2000)
+  //  })
+  //  promise
+  //    .then((data) => {
+  //      data.order = true
+  //      return data
+  //    })
+  //    .then((data) => console.log(data))
 })

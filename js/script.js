@@ -60,7 +60,6 @@ window.addEventListener('DOMContentLoaded', function () {
     // Modal
     var openModalBtns = document.querySelectorAll('[data-openModal]');
     var modal = document.querySelector('.modal');
-    var closeModalBtn = modal.querySelector('[data-closeModal]');
     var closeModal = function () {
         modal.style.display = '';
         document.body.style.overflow = 'auto';
@@ -71,9 +70,10 @@ window.addEventListener('DOMContentLoaded', function () {
         clearTimeout(modalTImerId);
     };
     openModalBtns.forEach(function (btn) { return btn.addEventListener('click', openModal); });
-    closeModalBtn === null || closeModalBtn === void 0 ? void 0 : closeModalBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
+        if (e.target === modal ||
+            (e.target instanceof HTMLElement &&
+                e.target.getAttribute('data-closemodal') === '')) {
             closeModal();
         }
     });
@@ -181,37 +181,80 @@ window.addEventListener('DOMContentLoaded', function () {
     var forms = document.querySelectorAll('form');
     var ResponseMessage;
     (function (ResponseMessage) {
-        ResponseMessage["SUCCESS"] = "SUCCESS";
-        ResponseMessage["LODADING"] = "LOADING";
-        ResponseMessage["ERROR"] = "ERROR";
+        ResponseMessage["SUCCESS"] = "\u041C\u044B \u0441 \u0432\u0430\u043C\u0438 \u0441\u0432\u044F\u0436\u0435\u043C\u0441\u044F";
+        ResponseMessage["LODADING"] = "img/form/spinner.svg";
+        ResponseMessage["ERROR"] = "\u0427\u0442\u043E\u0442\u043E \u043F\u043E\u0448\u043B\u043E \u043D\u0435 \u0442\u0430\u043A...";
     })(ResponseMessage || (ResponseMessage = {}));
     var postData = function (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            var request = new XMLHttpRequest();
             var formData = new FormData(form);
-            var responseBlock = document.createElement('div');
-            responseBlock.textContent = ResponseMessage.LODADING;
-            form.append(responseBlock);
-            request.open('POST', 'server.php');
-            request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            var img = document.createElement('img');
+            img.src = ResponseMessage.LODADING;
+            img.style.cssText = "\n\t\t\tdisplay:block;\n\t\t\tmargin: 0 auto;";
+            form.insertAdjacentElement('afterend', img);
             var obj = {};
             formData.forEach(function (value, key) { return (obj[key] = value); });
-            var json = JSON.stringify(obj);
-            request.send(json);
-            request.addEventListener('load', function () {
-                if (request.status === 200) {
-                    responseBlock.textContent = ResponseMessage.SUCCESS;
-                    form.reset();
+            fetch('server.php', {
+                method: 'POST',
+                body: JSON.stringify(obj),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(function (data) {
+                img.remove();
+                if (data.statusText === 'OK') {
+                    return data.text();
                 }
                 else {
-                    responseBlock.textContent = ResponseMessage.ERROR;
+                    throw new Error('Ошибка');
                 }
-                setTimeout(function () {
-                    responseBlock.textContent = '';
-                }, 2000);
+            })
+                .then(function (date) {
+                console.log(date);
+                showThanksModal(ResponseMessage.SUCCESS);
+            })["catch"](function (err) {
+                console.error(err);
+                showThanksModal(ResponseMessage.ERROR);
+            })["finally"](function () {
+                form.reset();
             });
         });
     };
     forms.forEach(function (form) { return postData(form); });
+    var showThanksModal = function (message) {
+        var _a;
+        var prevModal = document.querySelector('.modal__dialog');
+        if (prevModal instanceof HTMLElement) {
+            prevModal.style.display = 'none';
+        }
+        openModal();
+        var thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = "\n\t\t\t<div class=\"modal__content\">\n\t\t\t\t\t<div class=\"modal__close\" data-closemodal>\u00D7</div>\n\t\t\t\t\t<div class=\"modal__title\">".concat(message, "</div>\n\t\t\t</div>\n\t\t\t");
+        (_a = document.querySelector('.modal')) === null || _a === void 0 ? void 0 : _a.append(thanksModal);
+        setTimeout(function () {
+            closeModal();
+            if (prevModal instanceof HTMLElement) {
+                prevModal.style.display = 'block';
+            }
+            thanksModal.remove();
+        }, 2000);
+    };
+    //Promise test
+    //  interface IData {
+    //    name: string
+    //    price: number
+    //    order?: boolean
+    //  }
+    //  const promise: Promise<IData> = new Promise((resolve) => {
+    //    setTimeout(() => {
+    //      resolve({ name: 'TV', price: 4000 })
+    //    }, 2000)
+    //  })
+    //  promise
+    //    .then((data) => {
+    //      data.order = true
+    //      return data
+    //    })
+    //    .then((data) => console.log(data))
 });
