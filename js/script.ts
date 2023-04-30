@@ -357,4 +357,49 @@ window.addEventListener('DOMContentLoaded', () => {
       }, 2000)
     }
   })
+
+  //slider
+
+  //const slider: HTMLElement = document.querySelector('.offer__slider-wrapper')!
+  const slides: NodeListOf<HTMLElement> =
+    document.querySelectorAll('.offer__slide')
+  const slidesCount: HTMLElement = document.querySelector('#total')!
+  const currentSlide: HTMLElement = document.querySelector('#current')!
+  const prevSlideBtn: HTMLElement = document.querySelector(
+    '.offer__slider-prev'
+  )!
+  const nextSlideBtn: HTMLElement = document.querySelector(
+    '.offer__slider-next'
+  )!
+
+  const hideSlides = () => {
+    slides.forEach((slide) => {
+      slide.style.display = 'none'
+    })
+  }
+
+  const showSlide = (slideNumber: number) => {
+    slides[slideNumber - 1].style.display = 'block'
+    currentSlide.textContent = `${getZero(slideNumber)}`
+  }
+
+  const changeSlide = (slideNumber: number) => {
+    hideSlides()
+    showSlide(slideNumber)
+  }
+
+  prevSlideBtn.addEventListener('click', () => {
+    let prevSlide = +currentSlide.textContent! - 1
+    prevSlide = prevSlide < 1 ? slides.length : prevSlide
+    changeSlide(prevSlide)
+  })
+
+  nextSlideBtn.addEventListener('click', () => {
+    let nextSlide = +currentSlide.textContent! + 1
+    nextSlide = nextSlide > slides.length ? 1 : nextSlide
+    changeSlide(nextSlide)
+  })
+  slidesCount.textContent = `${getZero(slides.length)}`
+  hideSlides()
+  showSlide(1)
 })
