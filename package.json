@@ -1,4 +1,24 @@
 {
+  "name": "food",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "json-server": "^0.17.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Viqto0r/jsCourseFood.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Viqto0r/jsCourseFood/issues"
+  },
+  "homepage": "https://github.com/Viqto0r/jsCourseFood#readme",
+  "description": "",
   "dependencies": {
     "@types/node": "^18.16.2"
   }

@@ -41,10 +41,10 @@ window.addEventListener('DOMContentLoaded', () => {
     minutes: number
     seconds: number
   }
-  const deadline = '2023-04-30'
+  const deadline = '2023-07-30'
 
   const getZero = (num: number) => {
-    return num < 9 ? `0${num}` : String(num)
+    return num < 10 && num > 0 ? `0${num}` : String(num)
   }
 
   const getTimeRemaining = (deadline: string): TimeRemaining => {
@@ -139,6 +139,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('scroll', showModalByScroll)
 
+  const getProducts = async (): Promise<IProduct[]> => {
+    const response = await fetch('http://localhost:3000/menu')
+
+    return await response.json()
+  }
+
   //classes
   interface ICreateItemProps {
     tag: string
@@ -147,6 +153,15 @@ window.addEventListener('DOMContentLoaded', () => {
     src?: string
     alt?: string
   }
+
+  interface IProduct {
+    img: string
+    altimg: string
+    title: string
+    descr: string
+    price: number
+  }
+
   class Card {
     src: string
     alt: string
@@ -246,35 +261,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  new Card(
-    'img/tabs/vegy.jpg',
-    'vegy',
-    'Меню "Фитнес"',
-    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-    9,
-    '.menu .container',
-    'big',
-    'small'
-  ).render()
-
-  new Card(
-    'img/tabs/elite.jpg',
-    'elite',
-    'Меню “Премиум”',
-    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-    20,
-    '.menu .container'
-  ).render()
-
-  new Card(
-    'img/tabs/post.jpg',
-    'post',
-    'Меню "Постное"',
-    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-    16,
-    '.menu .container'
-  ).render()
-
   //Forms
 
   const forms = document.querySelectorAll('form')
@@ -284,98 +270,91 @@ window.addEventListener('DOMContentLoaded', () => {
     ERROR = 'Чтото пошло не так...',
   }
 
-  const postData = (form: HTMLFormElement) => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault()
+  getProducts().then((data) => {
+    data.forEach(({ img, altimg, title, descr, price }) => {
+      new Card(img, altimg, title, descr, price, '.menu .container').render()
+    })
 
-      const formData = new FormData(form)
+    const postData = async (url: string, body: { [key: string]: any }) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      })
 
-      const img = document.createElement('img')
-      img.src = ResponseMessage.LODADING
-      img.style.cssText = `
+      if (response.ok) {
+        return await response.json()
+      } else {
+        throw new Error('Ошибка')
+      }
+    }
+
+    const bindPostData = (form: HTMLFormElement) => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault()
+
+        const formData = new FormData(form)
+
+        const img = document.createElement('img')
+        img.src = ResponseMessage.LODADING
+        img.style.cssText = `
 			display:block;
 			margin: 0 auto;`
 
-      form.insertAdjacentElement('afterend', img)
+        form.insertAdjacentElement('afterend', img)
 
-      const obj: { [key: string]: any } = {}
+        const obj: { [key: string]: any } = {}
 
-      formData.forEach((value, key) => (obj[key] = value))
+        formData.forEach((value, key) => (obj[key] = value))
 
-      fetch('server.php', {
-        method: 'POST',
-        body: JSON.stringify(obj),
-        headers: { 'Content-Type': 'application/json' },
+        postData('http://localhost:3000/requests', obj)
+          .then((data) => {
+            img.remove()
+            console.log(data)
+          })
+          .then(() => {
+            showThanksModal(ResponseMessage.SUCCESS)
+          })
+          .catch((err) => {
+            console.error(err)
+            showThanksModal(ResponseMessage.ERROR)
+          })
+          .finally(() => {
+            form.reset()
+          })
       })
-        .then((data) => {
-          img.remove()
-          if (data.statusText === 'OK') {
-            return data.text()
-          } else {
-            throw new Error('Ошибка')
-          }
-        })
-        .then((date) => {
-          console.log(date)
-          showThanksModal(ResponseMessage.SUCCESS)
-        })
-        .catch((err) => {
-          console.error(err)
-          showThanksModal(ResponseMessage.ERROR)
-        })
-        .finally(() => {
-          form.reset()
-        })
-    })
-  }
-
-  forms.forEach((form) => postData(form))
-
-  const showThanksModal = (message: ResponseMessage) => {
-    const prevModal = document.querySelector('.modal__dialog')
-
-    if (prevModal instanceof HTMLElement) {
-      prevModal.style.display = 'none'
     }
 
-    openModal()
+    forms.forEach((form) => bindPostData(form))
 
-    const thanksModal = document.createElement('div')
+    const showThanksModal = (message: ResponseMessage) => {
+      const prevModal = document.querySelector('.modal__dialog')
 
-    thanksModal.classList.add('modal__dialog')
-    thanksModal.innerHTML = `
+      if (prevModal instanceof HTMLElement) {
+        prevModal.style.display = 'none'
+      }
+
+      openModal()
+
+      const thanksModal = document.createElement('div')
+
+      thanksModal.classList.add('modal__dialog')
+      thanksModal.innerHTML = `
 			<div class="modal__content">
 					<div class="modal__close" data-closemodal>×</div>
 					<div class="modal__title">${message}</div>
 			</div>
 			`
 
-    document.querySelector('.modal')?.append(thanksModal)
+      document.querySelector('.modal')?.append(thanksModal)
 
-    setTimeout(() => {
-      closeModal()
-      if (prevModal instanceof HTMLElement) {
-        prevModal.style.display = 'block'
-      }
-      thanksModal.remove()
-    }, 2000)
-  }
-  //Promise test
-  //  interface IData {
-  //    name: string
-  //    price: number
-  //    order?: boolean
-  //  }
-
-  //  const promise: Promise<IData> = new Promise((resolve) => {
-  //    setTimeout(() => {
-  //      resolve({ name: 'TV', price: 4000 })
-  //    }, 2000)
-  //  })
-  //  promise
-  //    .then((data) => {
-  //      data.order = true
-  //      return data
-  //    })
-  //    .then((data) => console.log(data))
+      setTimeout(() => {
+        closeModal()
+        if (prevModal instanceof HTMLElement) {
+          prevModal.style.display = 'block'
+        }
+        thanksModal.remove()
+      }, 2000)
+    }
+  })
 })
