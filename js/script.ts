@@ -360,9 +360,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   //slider
 
-  //const slider: HTMLElement = document.querySelector('.offer__slider-wrapper')!
+  let offset = 0
+  const sliderWrapper: HTMLElement = document.querySelector(
+    '.offer__slider-wrapper'
+  )!
+  const sliderInner: HTMLElement =
+    sliderWrapper.querySelector('.slider__inner')!
   const slides: NodeListOf<HTMLElement> =
-    document.querySelectorAll('.offer__slide')
+    sliderInner.querySelectorAll('.offer__slide')
   const slidesCount: HTMLElement = document.querySelector('#total')!
   const currentSlide: HTMLElement = document.querySelector('#current')!
   const prevSlideBtn: HTMLElement = document.querySelector(
@@ -371,35 +376,46 @@ window.addEventListener('DOMContentLoaded', () => {
   const nextSlideBtn: HTMLElement = document.querySelector(
     '.offer__slider-next'
   )!
+  const slideWidth = window.getComputedStyle(sliderWrapper).width
 
-  const hideSlides = () => {
-    slides.forEach((slide) => {
-      slide.style.display = 'none'
-    })
-  }
-
-  const showSlide = (slideNumber: number) => {
-    slides[slideNumber - 1].style.display = 'block'
-    currentSlide.textContent = `${getZero(slideNumber)}`
-  }
-
-  const changeSlide = (slideNumber: number) => {
-    hideSlides()
-    showSlide(slideNumber)
+  const fixSlideSize = () => {
+    slides.forEach((slide) => (slide.style.width = slideWidth))
   }
 
   prevSlideBtn.addEventListener('click', () => {
-    let prevSlide = +currentSlide.textContent! - 1
-    prevSlide = prevSlide < 1 ? slides.length : prevSlide
-    changeSlide(prevSlide)
+    const slideWidthInt = parseFloat(slideWidth)
+    if (offset === 0) {
+      offset = -(slideWidthInt * (slides.length - 1))
+    } else {
+      offset += slideWidthInt
+    }
+
+    swapSlide(slideWidthInt)
   })
 
   nextSlideBtn.addEventListener('click', () => {
-    let nextSlide = +currentSlide.textContent! + 1
-    nextSlide = nextSlide > slides.length ? 1 : nextSlide
-    changeSlide(nextSlide)
+    const slideWidthInt = parseFloat(slideWidth)
+    if (Math.abs(offset) === slideWidthInt * (slides.length - 1)) {
+      offset = 0
+    } else {
+      offset -= slideWidthInt
+    }
+
+    swapSlide(slideWidthInt)
   })
+
+  const swapSlide = (slideWidthNumber: number) => {
+    sliderInner.style.transform = `translateX(${offset}px)`
+    currentSlide.textContent = `${getZero(
+      Math.abs(offset) / slideWidthNumber + 1
+    )}`
+  }
+
   slidesCount.textContent = `${getZero(slides.length)}`
-  hideSlides()
-  showSlide(1)
+  sliderInner.style.width = parseInt(slideWidth) * 4 + 'px'
+  sliderInner.style.display = 'flex'
+  sliderInner.style.transition = 'all 0.5s'
+  sliderWrapper.style.overflow = 'hidden'
+  currentSlide.textContent = `${getZero(offset + 1)}`
+  fixSlideSize()
 })
