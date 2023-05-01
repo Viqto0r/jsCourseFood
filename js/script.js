@@ -342,6 +342,31 @@ window.addEventListener('DOMContentLoaded', function () {
     sliderInner.style.display = 'flex';
     sliderInner.style.transition = 'all 0.5s';
     sliderWrapper.style.overflow = 'hidden';
+    sliderWrapper.style.position = 'relative';
     currentSlide.textContent = "".concat(getZero(offset + 1));
     fixSlideSize();
+    var dotsContainer = document.createElement('div');
+    dotsContainer.classList.add('carousel-indicators');
+    sliderWrapper.append(dotsContainer);
+    var createDots = function (count) {
+        var dots = [];
+        for (var i = 0; i < count; i++) {
+            var dot = document.createElement('div');
+            dot.classList.add('dot');
+            dots.push(dot);
+        }
+        return dots;
+    };
+    dotsContainer.append.apply(dotsContainer, createDots(slides.length));
+    dotsContainer.addEventListener('click', function (e) {
+        var dots = document.querySelectorAll('.dot');
+        if (e.target instanceof Element) {
+            if (e.target.classList.contains('dot')) {
+                var idx = Array.from(dots).indexOf(e.target);
+                var slideWidthInt = parseFloat(slideWidth);
+                offset = slideWidthInt * -idx;
+                swapSlide(slideWidthInt);
+            }
+        }
+    });
 });

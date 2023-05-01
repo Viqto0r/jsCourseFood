@@ -416,6 +416,35 @@ window.addEventListener('DOMContentLoaded', () => {
   sliderInner.style.display = 'flex'
   sliderInner.style.transition = 'all 0.5s'
   sliderWrapper.style.overflow = 'hidden'
+  sliderWrapper.style.position = 'relative'
   currentSlide.textContent = `${getZero(offset + 1)}`
   fixSlideSize()
+
+  const dotsContainer = document.createElement('div')
+  dotsContainer.classList.add('carousel-indicators')
+  sliderWrapper.append(dotsContainer)
+
+  const createDots = (count: number) => {
+    const dots = []
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement('div')
+      dot.classList.add('dot')
+      dots.push(dot)
+    }
+
+    return dots
+  }
+
+  dotsContainer.append(...createDots(slides.length))
+  dotsContainer.addEventListener('click', (e) => {
+    const dots = document.querySelectorAll('.dot')
+    if (e.target instanceof Element) {
+      if (e.target.classList.contains('dot')) {
+        const idx = Array.from(dots).indexOf(e.target)
+        const slideWidthInt = parseFloat(slideWidth)
+        offset = slideWidthInt * -idx
+        swapSlide(slideWidthInt)
+      }
+    }
+  })
 })
