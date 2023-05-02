@@ -404,11 +404,12 @@ window.addEventListener('DOMContentLoaded', () => {
     swapSlide(slideWidthInt)
   })
 
-  const swapSlide = (slideWidthNumber: number) => {
+  const swapSlide = (slideWidthInt: number) => {
     sliderInner.style.transform = `translateX(${offset}px)`
     currentSlide.textContent = `${getZero(
-      Math.abs(offset) / slideWidthNumber + 1
+      Math.abs(offset) / slideWidthInt + 1
     )}`
+    activeDots(Math.abs(offset / slideWidthInt))
   }
 
   slidesCount.textContent = `${getZero(slides.length)}`
@@ -429,6 +430,9 @@ window.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < count; i++) {
       const dot = document.createElement('div')
       dot.classList.add('dot')
+      if (i === 0) {
+        dot.classList.add('active')
+      }
       dots.push(dot)
     }
 
@@ -437,14 +441,26 @@ window.addEventListener('DOMContentLoaded', () => {
 
   dotsContainer.append(...createDots(slides.length))
   dotsContainer.addEventListener('click', (e) => {
-    const dots = document.querySelectorAll('.dot')
     if (e.target instanceof Element) {
       if (e.target.classList.contains('dot')) {
         const idx = Array.from(dots).indexOf(e.target)
         const slideWidthInt = parseFloat(slideWidth)
         offset = slideWidthInt * -idx
         swapSlide(slideWidthInt)
+        activeDots(idx)
       }
     }
   })
+
+  const dots = document.querySelectorAll('.dot')
+
+  const activeDots = (n: number) => {
+    dots.forEach((dot, idx) => {
+      if (idx === n) {
+        dot.classList.add('active')
+      } else {
+        dot.classList.remove('active')
+      }
+    })
+  }
 })

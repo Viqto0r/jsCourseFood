@@ -333,9 +333,10 @@ window.addEventListener('DOMContentLoaded', function () {
         }
         swapSlide(slideWidthInt);
     });
-    var swapSlide = function (slideWidthNumber) {
+    var swapSlide = function (slideWidthInt) {
         sliderInner.style.transform = "translateX(".concat(offset, "px)");
-        currentSlide.textContent = "".concat(getZero(Math.abs(offset) / slideWidthNumber + 1));
+        currentSlide.textContent = "".concat(getZero(Math.abs(offset) / slideWidthInt + 1));
+        activeDots(Math.abs(offset / slideWidthInt));
     };
     slidesCount.textContent = "".concat(getZero(slides.length));
     sliderInner.style.width = parseInt(slideWidth) * 4 + 'px';
@@ -353,20 +354,34 @@ window.addEventListener('DOMContentLoaded', function () {
         for (var i = 0; i < count; i++) {
             var dot = document.createElement('div');
             dot.classList.add('dot');
+            if (i === 0) {
+                dot.classList.add('active');
+            }
             dots.push(dot);
         }
         return dots;
     };
     dotsContainer.append.apply(dotsContainer, createDots(slides.length));
     dotsContainer.addEventListener('click', function (e) {
-        var dots = document.querySelectorAll('.dot');
         if (e.target instanceof Element) {
             if (e.target.classList.contains('dot')) {
                 var idx = Array.from(dots).indexOf(e.target);
                 var slideWidthInt = parseFloat(slideWidth);
                 offset = slideWidthInt * -idx;
                 swapSlide(slideWidthInt);
+                activeDots(idx);
             }
         }
     });
+    var dots = document.querySelectorAll('.dot');
+    var activeDots = function (n) {
+        dots.forEach(function (dot, idx) {
+            if (idx === n) {
+                dot.classList.add('active');
+            }
+            else {
+                dot.classList.remove('active');
+            }
+        });
+    };
 });
