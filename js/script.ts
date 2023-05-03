@@ -29,7 +29,6 @@ window.addEventListener('DOMContentLoaded', () => {
     prevBtnSelector: '.offer__slider-prev',
     sliderInnerSelector: '.slider__inner',
     slidesCountSelector: '#total',
-		slideSelector: '.offer__slide',
-		
+    slideSelector: '.offer__slide',
   })
 })
