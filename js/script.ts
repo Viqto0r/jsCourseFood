@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 500000000)
 
   tabs(
-    '.tabheader__item',
+    'tabheader__item',
     'tabheader__item_active',
     '.tabcontent',
     '.tabheader__items'

@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const modalTImerId = setTimeout(() => {
         (0, modal_1.openModal)('.modal', modalTImerId);
     }, 500000000);
-    (0, tabs_1.default)('.tabheader__item', 'tabheader__item_active', '.tabcontent', '.tabheader__items');
+    (0, tabs_1.default)('tabheader__item', 'tabheader__item_active', '.tabcontent', '.tabheader__items');
     (0, modal_1.default)('.modal', '[data-openModal]', modalTImerId);
     (0, timer_1.default)('.timer', '2023-07-30');
     (0, card_1.default)();
